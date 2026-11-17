@@ -30,7 +30,7 @@ def simplify(ad: dict) -> dict:
     }
 
 
-def main(total: int = 500) -> None:
+def main(total: int = 2000) -> None:
     OUT_FILE.parent.mkdir(parents=True, exist_ok=True)
     ads = []
     with httpx.Client(timeout=30) as client:
