@@ -1,0 +1,14 @@
+services:                          # the list of containers to run
+  db:                              # our container's name: "db"
+    image: pgvector/pgvector:pg17  # which image: Postgres 17 + pgvector
+    environment:                   # settings passed into the container
+      POSTGRES_USER: jobmatch      #   database username
+      POSTGRES_PASSWORD: jobmatch  #   password (fine for your laptop; never use a real password like this in production)
+      POSTGRES_DB: jobmatch        #   name of the database to create
+    ports:
+      - "5432:5432"                # laptop port : container port. Your Python code connects to localhost:5432
+    volumes:
+      - pgdata:/var/lib/postgresql/data   # keep the data in the "pgdata" volume, so it survives restarts
+
+volumes:
+  pgdata:                          # create that volume
