@@ -2,7 +2,7 @@
 
 # Optional filters. "%(city)s::text IS NULL" means: if no city was given, skip this filter.
 FILTERS = """
-    (%(city)s::text IS NULL OR a.city = %(city)s)
+    (%(city)s::text IS NULL OR lower(a.city) = lower(%(city)s))
     AND (%(language)s::text IS NULL OR a.language = %(language)s)
 """
 

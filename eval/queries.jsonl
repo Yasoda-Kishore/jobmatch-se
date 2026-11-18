@@ -1,0 +1,50 @@
+{"id": "q01", "query": "machine learning engineer", "type": "en"}
+{"id": "q02", "query": "junior data analyst", "type": "en"}
+{"id": "q03", "query": "graduate software engineer", "type": "en"}
+{"id": "q04", "query": "backend developer java", "type": "en"}
+{"id": "q05", "query": "data scientist NLP", "type": "en"}
+{"id": "q06", "query": "cloud engineer azure", "type": "en"}
+{"id": "q07", "query": "maskininlärning", "type": "sv"}
+{"id": "q08", "query": "dataingenjör", "type": "sv"}
+{"id": "q09", "query": "systemutvecklare java", "type": "sv"}
+{"id": "q10", "query": "junior utvecklare", "type": "sv"}
+{"id": "q11", "query": "dataanalytiker power bi", "type": "sv"}
+{"id": "q12", "query": "Kubernetes", "type": "skill"}
+{"id": "q13", "query": "PyTorch", "type": "skill"}
+{"id": "q14", "query": "Databricks", "type": "skill"}
+{"id": "q15", "query": "Terraform", "type": "skill"}
+{"id": "q16", "query": "React TypeScript", "type": "skill"}
+{"id": "q17", "query": "python developer", "city": "Stockholm", "language": "en", "type": "filter"}
+{"id": "q18", "query": "data engineer", "city": "Göteborg", "type": "filter"}
+{"id": "q19", "query": "AI engineer", "city": "Lund", "type": "filter"}
+{"id": "q20", "query": "junior developer", "language": "en", "type": "filter"}
+{"id": "q21", "query": "AI engineer LLM", "type": "en"}
+{"id": "q22", "query": "computer vision engineer", "type": "en"}
+{"id": "q23", "query": "MLOps engineer", "type": "en"}
+{"id": "q24", "query": "generative AI developer", "type": "en"}
+{"id": "q25", "query": "deep learning research engineer", "type": "en"}
+{"id": "q26", "query": "data engineer python spark", "type": "en"}
+{"id": "q27", "query": "software engineer graduate program", "type": "en"}
+{"id": "q28", "query": "NLP engineer chatbot", "type": "en"}
+{"id": "q29", "query": "AI-utvecklare", "type": "sv"}
+{"id": "q30", "query": "mjukvaruutvecklare python", "type": "sv"}
+{"id": "q31", "query": "AI-ingenjör", "type": "sv"}
+{"id": "q32", "query": "systemutvecklare backend", "type": "sv"}
+{"id": "q33", "query": "traineeprogram IT", "type": "sv"}
+{"id": "q34", "query": "utvecklare inbyggda system", "type": "sv"}
+{"id": "q35", "query": "dataanalys och statistik", "type": "sv"}
+{"id": "q36", "query": "LangChain", "type": "skill"}
+{"id": "q37", "query": "retrieval augmented generation RAG", "type": "skill"}
+{"id": "q38", "query": "Hugging Face", "type": "skill"}
+{"id": "q39", "query": "TensorFlow", "type": "skill"}
+{"id": "q40", "query": "Docker", "type": "skill"}
+{"id": "q41", "query": "Snowflake", "type": "skill"}
+{"id": "q42", "query": "FastAPI", "type": "skill"}
+{"id": "q43", "query": "scikit-learn", "type": "skill"}
+{"id": "q44", "query": "machine learning engineer", "city": "Stockholm", "language": "en", "type": "filter"}
+{"id": "q45", "query": "data scientist", "city": "Göteborg", "type": "filter"}
+{"id": "q46", "query": "AI engineer", "city": "Malmö", "type": "filter"}
+{"id": "q47", "query": "software developer", "city": "Linköping", "type": "filter"}
+{"id": "q48", "query": "junior data engineer", "language": "en", "type": "filter"}
+{"id": "q49", "query": "AI-utvecklare", "city": "Stockholm", "language": "sv", "type": "filter"}
+{"id": "q50", "query": "computer vision", "city": "Lund", "type": "filter"}
