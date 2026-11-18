@@ -1,39 +1,28 @@
-"""Vector search: find the ads whose chunks are closest in meaning to a question."""
-import sys
+"""Vector search: ads whose chunks are closest in meaning to the question."""
+import psycopg
 
-from jobmatch.db import connect
 from jobmatch.embeddings import embed_query
+from jobmatch.search.common import FILTERS, best_per_ad
 
-SEARCH = """
-SELECT a.id, a.title, a.employer, a.city, a.url,
-       1 - (c.embedding <=> %(q)s) AS similarity
+VECTOR_SQL = f"""
+SELECT a.id, 1 - (c.embedding <=> %(q)s) AS score
 FROM chunks c
 JOIN ads a ON a.id = c.ad_id
+WHERE {FILTERS}
 ORDER BY c.embedding <=> %(q)s
-LIMIT 50;
+LIMIT %(limit)s;
 """
 
 
-def search(question: str, k: int = 10) -> list[dict]:
-    """Return the top k ads. One ad can have many chunks, so keep only its best chunk."""
-    query_vector = embed_query(question)
-    with connect() as conn:
-        rows = conn.execute(SEARCH, {"q": query_vector}).fetchall()
-    results, seen = [], set()
-    for ad_id, title, employer, city, url, similarity in rows:
-        if ad_id in seen:
-            continue
-        seen.add(ad_id)
-        results.append(
-            {"id": ad_id, "title": title, "employer": employer, "city": city,
-             "url": url, "similarity": round(float(similarity), 3)}
-        )
-        if len(results) == k:
-            break
-    return results
-
-
-if __name__ == "__main__":
-    question = " ".join(sys.argv[1:]) or "python developer"
-    for rank, ad in enumerate(search(question), start=1):
-        print(f"{rank:2}. {ad['similarity']:.3f}  {ad['title']}  |  {ad['employer']}, {ad['city']}")
+def vector_search(
+    conn: psycopg.Connection, question: str, city: str | None = None,
+    language: str | None = None, k: int = 50,
+) -> list[tuple[str, float]]:
+    """Return up to k (ad_id, similarity) pairs, best first."""
+    # The HNSW index normally looks at about 40 candidates. Look at more, and keep
+    # searching when filters remove results (a pgvector 0.8 feature).
+    conn.execute("SET hnsw.ef_search = 200")
+    conn.execute("SET hnsw.iterative_scan = strict_order")
+    params = {"q": embed_query(question), "city": city, "language": language, "limit": k * 5}
+    rows = conn.execute(VECTOR_SQL, params).fetchall()
+    return best_per_ad(rows, k)
