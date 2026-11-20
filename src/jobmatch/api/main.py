@@ -1,9 +1,11 @@
 """The web API. Start it with: uvicorn jobmatch.api.main:app --reload"""
 from typing import Literal
 
-from fastapi import FastAPI, Query
+from fastapi import FastAPI, HTTPException, Query, UploadFile
 from pydantic import BaseModel
 
+from jobmatch.match.profile import read_pdf_text
+from jobmatch.match.service import match_cv_text
 from jobmatch.search.engine import search
 
 app = FastAPI(title="JobMatch SE", description="Search Swedish IT job ads by meaning and keywords")
@@ -42,3 +44,19 @@ def search_ads(
     """Find the best matching job ads."""
     results = search(q, mode=mode, city=city, language=language, k=k)
     return SearchResponse(query=q, mode=mode, results=results)
+
+
+@app.post("/match")
+def match_cv(
+    cv: UploadFile,
+    city: str | None = None,
+    language: Literal["sv", "en"] | None = None,
+    top: int = Query(5, ge=1, le=10),
+) -> dict:
+    """Upload a CV (PDF) and get the best matching jobs, scored with reasons."""
+    if cv.content_type != "application/pdf":
+        raise HTTPException(status_code=400, detail="Please upload a PDF file")
+    text = read_pdf_text(cv.file.read())
+    if not text:
+        raise HTTPException(status_code=400, detail="No readable text in this PDF")
+    return match_cv_text(text, city=city, language=language, top=top)

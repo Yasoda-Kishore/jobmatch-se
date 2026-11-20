@@ -7,8 +7,8 @@ from jobmatch.match.profile import CandidateProfile, build_search_query
 
 GOOD = (
     '{"target_roles": ["ML Engineer"], "skills": ["Python", "PyTorch", "Docker"],'
-    ' "years_of_experience": 1.0, "languages": ["English"], "education": "BSc CS",'
-    ' "summary": "A junior ML engineer."}'
+    ' "experiences": [{"title": "Intern", "start": "2024-03", "end": "2024-05"}],'
+    ' "spoken_languages": ["English"], "education": "BSc CS", "summary": "A junior ML engineer."}'
 )
 
 
@@ -43,3 +43,19 @@ def test_chat_json_gives_up_after_max_tries(monkeypatch):
 def test_build_search_query_uses_role_and_top_skills():
     profile = CandidateProfile.model_validate_json(GOOD)
     assert build_search_query(profile, max_skills=2) == "ML Engineer Python PyTorch"
+
+
+def test_years_of_experience_counts_overlapping_months_once():
+    profile = CandidateProfile.model_validate_json(GOOD)
+    profile.experiences = [
+        {"title": "A", "start": "2024-03", "end": "2024-05"},  # Mar, Apr, May
+        {"title": "B", "start": "2024-05", "end": "2024-06"},  # May again, Jun
+    ]
+    profile = CandidateProfile.model_validate(profile.model_dump(exclude={"years_of_experience"}))
+    assert profile.years_of_experience == round(4 / 12, 1)
+
+
+def test_bad_date_format_is_rejected():
+    bad = GOOD.replace('"2024-03"', '"March 2024"')
+    with pytest.raises(ValueError):
+        CandidateProfile.model_validate_json(bad)

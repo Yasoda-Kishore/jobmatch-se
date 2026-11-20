@@ -1,12 +1,12 @@
-"""Find the best jobs for a CV: CV -> profile (LLM) -> search query -> hybrid search.
+"""Find and score the best jobs for a CV.
 
-Run:  python -m jobmatch.match.match_cv path\\to\\cv.pdf [--city Stockholm] [--language en]
+Run:  python -m jobmatch.match.match_cv path\\to\\cv.pdf [--city Stockholm] [--language en] [--top 5]
 """
 import argparse
 from pathlib import Path
 
-from jobmatch.match.profile import build_search_query, extract_profile, read_pdf_text
-from jobmatch.search.engine import search
+from jobmatch.match.profile import read_pdf_text
+from jobmatch.match.service import match_cv_text
 
 
 def main() -> None:
@@ -14,18 +14,24 @@ def main() -> None:
     parser.add_argument("cv", type=Path)
     parser.add_argument("--city")
     parser.add_argument("--language", choices=["sv", "en"])
+    parser.add_argument("--top", type=int, default=5, help="how many jobs the LLM scores")
     args = parser.parse_args()
 
-    print("reading the CV and asking the LLM for a profile...")
-    profile = extract_profile(read_pdf_text(args.cv))
-    print(f"roles:  {', '.join(profile.target_roles)}")
-    print(f"skills: {', '.join(profile.skills)}")
-    print(f"years:  {profile.years_of_experience}")
-    query = build_search_query(profile)
-    print(f"query:  {query}\n")
+    print("reading the CV, searching, and scoring jobs with the LLM (this takes a few minutes)...")
+    result = match_cv_text(read_pdf_text(args.cv), args.city, args.language, args.top)
+    profile = result["profile"]
+    print(f"\nroles: {', '.join(profile['target_roles'])}   experience: {profile['years_of_experience']} years")
+    print(f"query: {result['query']}")
 
-    for rank, ad in enumerate(search(query, "hybrid", args.city, args.language, k=10), start=1):
-        print(f"{rank:2}. [{ad['language']}] {ad['title']}  |  {ad['employer']}, {ad['city']}")
+    for rank, m in enumerate(result["matches"], start=1):
+        swedish = "  [Swedish required]" if m["requires_swedish"] else ""
+        print(f"\n{rank}. {m['score']}/100  {m['title']}  |  {m['employer']}, {m['city']}{swedish}")
+        print(f"   matching: {', '.join(m['matching_skills']) or '-'}")
+        print(f"   missing:  {', '.join(m['missing_skills']) or '-'}")
+        for reason in m["reasons"]:
+            print(f"   - {reason['claim']}")
+            print(f'     "{reason["quote"]}"')
+    print(f"\nquotes verified in the ad text: {result['quotes_verified']}")
 
 
 if __name__ == "__main__":
