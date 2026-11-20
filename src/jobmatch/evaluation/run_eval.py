@@ -11,7 +11,7 @@ from jobmatch.evaluation.data import load_labels, load_queries
 from jobmatch.evaluation.metrics import ndcg_at_k, recall_at_k, reciprocal_rank
 from jobmatch.search.engine import search
 
-MODES = ["keyword", "vector", "hybrid"]
+MODES = ["keyword", "vector", "hybrid", "rerank"]
 RESULTS_FILE = Path("eval/results.md")
 
 

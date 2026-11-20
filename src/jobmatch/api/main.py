@@ -34,7 +34,7 @@ def health() -> dict:
 @app.get("/search", response_model=SearchResponse)
 def search_ads(
     q: str = Query(min_length=2, description="What you are looking for"),
-    mode: Literal["vector", "keyword", "hybrid"] = "hybrid",
+    mode: Literal["vector", "keyword", "hybrid", "rerank"] = "hybrid",
     city: str | None = None,
     language: Literal["sv", "en"] | None = None,
     k: int = Query(10, ge=1, le=50),

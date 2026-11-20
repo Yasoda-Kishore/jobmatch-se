@@ -4,10 +4,12 @@ from collections import defaultdict
 
 from jobmatch.db import connect
 from jobmatch.search.keyword import keyword_search
+from jobmatch.search.rerank import rerank
 from jobmatch.search.vector import vector_search
 
 RRF_K = 60  # the usual constant for Reciprocal Rank Fusion
-
+RERANK_CANDIDATES = 30  # how many hybrid results the reranker re-orders
+MODES = ["vector", "keyword", "hybrid", "rerank"]
 
 def reciprocal_rank_fusion(*rankings: list[tuple[str, float]]) -> list[tuple[str, float]]:
     """Combine ranked lists. Each ad gets 1 / (60 + rank) from every list it appears in.
@@ -32,11 +34,13 @@ def search(
             ranked = vector_search(conn, question, city, language)
         elif mode == "keyword":
             ranked = keyword_search(conn, question, city, language)
-        elif mode == "hybrid":
+        elif mode in ("hybrid", "rerank"):
             ranked = reciprocal_rank_fusion(
                 vector_search(conn, question, city, language),
                 keyword_search(conn, question, city, language),
             )
+            if mode == "rerank":
+                ranked = rerank(conn, question, ranked[:RERANK_CANDIDATES])
         else:
             raise ValueError(f"unknown mode: {mode}")
         ranked = ranked[:k]
@@ -59,7 +63,7 @@ def search(
 def main() -> None:
     parser = argparse.ArgumentParser(description="Search the job ads")
     parser.add_argument("question")
-    parser.add_argument("--mode", choices=["vector", "keyword", "hybrid"], default="hybrid")
+    parser.add_argument("--mode", choices=MODES, default="hybrid")
     parser.add_argument("--city")
     parser.add_argument("--language", choices=["sv", "en"])
     args = parser.parse_args()
