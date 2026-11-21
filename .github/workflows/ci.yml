@@ -30,11 +30,28 @@ jobs:
       - name: Run tests
         run: pytest -q
 
-  docker:
-    name: Build the Docker image
+  publish:
+    name: Build and publish the Docker image
     runs-on: ubuntu-latest
     needs: test
+    permissions:
+      contents: read
+      packages: write
     steps:
       - uses: actions/checkout@v4
-      - name: Build
-        run: docker build -t jobmatch-se .
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build, and publish only for pushes to main
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: ${{ github.event_name == 'push' }}
+          tags: |
+            ghcr.io/yasoda-kishore/jobmatch-se:latest
+            ghcr.io/yasoda-kishore/jobmatch-se:${{ github.sha }}

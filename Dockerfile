@@ -16,9 +16,14 @@ RUN pip install torch --index-url https://download.pytorch.org/whl/cpu
 COPY pyproject.toml ./
 RUN mkdir -p src/jobmatch && touch src/jobmatch/__init__.py && pip install -e .
 
-# 3. The code itself (changes often, so it comes last)
+# 3. Download the embedding model now, so it is inside the image.
+#    Then a new container in the cloud starts in seconds instead of downloading 470 MB first.
+RUN python -c "from sentence_transformers import SentenceTransformer; SentenceTransformer('intfloat/multilingual-e5-small')"
+
+# 4. The code itself (changes often, so it comes last)
 COPY src ./src
 COPY web ./web
 
 EXPOSE 8000
-CMD ["uvicorn", "jobmatch.api.main:app", "--host", "0.0.0.0", "--port", "8000"]
+# --proxy-headers: behind Azure's front door, read the visitor's real address (for the match limit)
+CMD ["uvicorn", "jobmatch.api.main:app", "--host", "0.0.0.0", "--port", "8000", "--proxy-headers", "--forwarded-allow-ips", "*"]
