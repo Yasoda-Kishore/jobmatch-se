@@ -1,14 +1,36 @@
-services:                          # the list of containers to run
-  db:                              # our container's name: "db"
-    image: pgvector/pgvector:pg17  # which image: Postgres 17 + pgvector
-    environment:                   # settings passed into the container
-      POSTGRES_USER: jobmatch      #   database username
-      POSTGRES_PASSWORD: jobmatch  #   password (fine for your laptop; never use a real password like this in production)
-      POSTGRES_DB: jobmatch        #   name of the database to create
+services:
+  db:
+    image: pgvector/pgvector:pg17
+    environment:
+      POSTGRES_USER: jobmatch
+      POSTGRES_PASSWORD: jobmatch
+      POSTGRES_DB: jobmatch
     ports:
-      - "5432:5432"                # laptop port : container port. Your Python code connects to localhost:5432
+      - "5432:5432"
     volumes:
-      - pgdata:/var/lib/postgresql/data   # keep the data in the "pgdata" volume, so it survives restarts
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U jobmatch -d jobmatch"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  app:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      DATABASE_URL: postgresql://jobmatch:jobmatch@db:5432/jobmatch
+      OLLAMA_HOST: http://host.docker.internal:11434
+    volumes:
+      - models:/models
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    depends_on:
+      db:
+        condition: service_healthy
+    profiles: ["app"]
 
 volumes:
-  pgdata:                          # create that volume
+  pgdata:
+  models:

@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>JobMatch SE</title>
+  <meta name="description" content="Match your CV to live Swedish IT job ads, and see which skills to learn next.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=Saira:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js",
+        "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/"
+      }
+    }
+  </script>
+</head>
+<body>
+  <canvas id="sky" aria-hidden="true"></canvas>
+  <div class="vignette" aria-hidden="true"></div>
+  <div class="letterbox letterbox-top" aria-hidden="true"></div>
+  <div class="letterbox letterbox-bottom" aria-hidden="true"></div>
+
+  <header class="topbar">
+    <a class="brand" href="#top">JobMatch SE</a>
+    <nav aria-label="Main">
+      <a href="#match">Match my CV</a>
+      <a href="#search">Search jobs</a>
+      <a href="/docs" target="_blank" rel="noopener">API</a>
+    </nav>
+  </header>
+
+  <main id="top">
+    <section class="hero">
+      <h1 class="title">JobMatch SE</h1>
+      <p class="tagline">Upload your CV. See which Swedish IT jobs fit you, why they fit, and which skills you need next.</p>
+      <div class="hero-actions">
+        <a class="btn btn-primary" href="#match">Match my CV</a>
+        <a class="btn btn-ghost" href="#search">Search jobs</a>
+      </div>
+      <p class="hero-note">Live ads from Arbetsförmedlingen. Your CV is read by a local AI model and never leaves this machine.</p>
+    </section>
+
+    <section id="match" class="panel" aria-labelledby="match-heading">
+      <h2 id="match-heading">Match my CV</h2>
+      <form id="match-form" class="match-form">
+        <label class="dropzone" id="dropzone">
+          <input type="file" id="cv-file" name="cv" accept="application/pdf" required>
+          <span class="dropzone-icon" aria-hidden="true"></span>
+          <span class="dropzone-text" id="dropzone-text">Drop your CV here as a PDF, or choose a file</span>
+        </label>
+        <div class="field-row">
+          <label class="field">
+            <span>City</span>
+            <input type="text" name="city" placeholder="Any city">
+          </label>
+          <label class="field">
+            <span>Ad language</span>
+            <select name="language">
+              <option value="">Any</option>
+              <option value="en">English</option>
+              <option value="sv">Swedish</option>
+            </select>
+          </label>
+          <label class="field">
+            <span>Jobs to score: <output id="top-value">5</output></span>
+            <input type="range" name="top" min="1" max="10" value="5" id="top-range">
+          </label>
+        </div>
+        <button class="btn btn-primary btn-wide" type="submit" id="match-button">Find my matches</button>
+      </form>
+
+      <div class="scan" id="match-loading" hidden>
+        <div class="scan-bar" aria-hidden="true"></div>
+        <p class="scan-text" id="scan-text" role="status">Reading your CV</p>
+      </div>
+      <p class="message" id="match-message" role="alert" hidden></p>
+      <div id="match-results"></div>
+    </section>
+
+    <section id="search" class="panel" aria-labelledby="search-heading">
+      <h2 id="search-heading">Search jobs</h2>
+      <form id="search-form" class="search-form">
+        <label class="field field-grow">
+          <span>What are you looking for?</span>
+          <input type="search" name="q" placeholder="machine learning engineer" minlength="2" required>
+        </label>
+        <label class="field">
+          <span>City</span>
+          <input type="text" name="city" placeholder="Any city">
+        </label>
+        <label class="field">
+          <span>Ad language</span>
+          <select name="language">
+            <option value="">Any</option>
+            <option value="en">English</option>
+            <option value="sv">Swedish</option>
+          </select>
+        </label>
+        <fieldset class="modes">
+          <legend>Search method</legend>
+          <label><input type="radio" name="mode" value="hybrid" checked><span>Best match</span></label>
+          <label><input type="radio" name="mode" value="vector"><span>By meaning</span></label>
+          <label><input type="radio" name="mode" value="keyword"><span>Exact words</span></label>
+          <label><input type="radio" name="mode" value="rerank"><span>Deep rerank (slow)</span></label>
+        </fieldset>
+        <button class="btn btn-primary" type="submit">Search</button>
+      </form>
+      <p class="message" id="search-message" role="alert" hidden></p>
+      <ol class="results" id="search-results"></ol>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <p>Job data: <a href="https://jobtechdev.se" target="_blank" rel="noopener">JobTech API, Arbetsförmedlingen</a> (open data, CC0).</p>
+    <p>Built by Allu Yasoda Kishore. <a href="https://github.com/Yasoda-Kishore/jobmatch-se" target="_blank" rel="noopener">Source on GitHub</a></p>
+  </footer>
+
+  <script type="module" src="app.js"></script>
+</body>
+</html>

@@ -1,7 +1,9 @@
 """The web API. Start it with: uvicorn jobmatch.api.main:app --reload"""
+from pathlib import Path
 from typing import Literal
 
 from fastapi import FastAPI, HTTPException, Query, UploadFile
+from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
 from jobmatch.match.profile import read_pdf_text
@@ -60,3 +62,9 @@ def match_cv(
     if not text:
         raise HTTPException(status_code=400, detail="No readable text in this PDF")
     return match_cv_text(text, city=city, language=language, top=top)
+
+
+# The website (web/index.html and friends). Mounted last, so the API routes above win.
+WEB_DIR = Path(__file__).resolve().parents[3] / "web"
+if WEB_DIR.exists():
+    app.mount("/", StaticFiles(directory=WEB_DIR, html=True), name="web")

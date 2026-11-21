@@ -49,7 +49,7 @@ class CandidateProfile(BaseModel):
 SYSTEM_PROMPT = """You read CVs and extract facts for a job-matching system.
 Rules:
 - Only use information that is written in the CV. Never invent skills or experience.
-- List skills as short names, like "Python", "PyTorch", "Docker".
+- List skills as short names, like "Python", "PyTorch", "Docker". Include every programming language and query language listed (for example SQL, Java, C++).
 - Copy job dates exactly as months (YYYY-MM). Do not calculate anything.
 - Do not include the person's name, email, phone number or address.
 - Answer in English, even if the CV is in Swedish."""

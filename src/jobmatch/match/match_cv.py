@@ -26,11 +26,13 @@ def main() -> None:
     for rank, m in enumerate(result["matches"], start=1):
         swedish = "  [Swedish required]" if m["requires_swedish"] else ""
         print(f"\n{rank}. {m['score']}/100  {m['title']}  |  {m['employer']}, {m['city']}{swedish}")
+        print(f"   score parts: {m['score_parts']}")
         print(f"   matching: {', '.join(m['matching_skills']) or '-'}")
         print(f"   missing:  {', '.join(m['missing_skills']) or '-'}")
         for reason in m["reasons"]:
-            print(f"   - {reason['claim']}")
-            print(f'     "{reason["quote"]}"')
+            print(f"   - {reason}")
+        for quote in m["quotes"]:
+            print(f'     "{quote}"')
     print(f"\nquotes verified in the ad text: {result['quotes_verified']}")
 
 

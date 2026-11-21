@@ -46,12 +46,12 @@ def test_build_search_query_uses_role_and_top_skills():
 
 
 def test_years_of_experience_counts_overlapping_months_once():
-    profile = CandidateProfile.model_validate_json(GOOD)
-    profile.experiences = [
+    data = CandidateProfile.model_validate_json(GOOD).model_dump(exclude={"years_of_experience"})
+    data["experiences"] = [
         {"title": "A", "start": "2024-03", "end": "2024-05"},  # Mar, Apr, May
         {"title": "B", "start": "2024-05", "end": "2024-06"},  # May again, Jun
     ]
-    profile = CandidateProfile.model_validate(profile.model_dump(exclude={"years_of_experience"}))
+    profile = CandidateProfile.model_validate(data)
     assert profile.years_of_experience == round(4 / 12, 1)
 
 

@@ -1,8 +1,11 @@
 """One place for the database connection."""
+import os
+
 import psycopg
 from pgvector.psycopg import register_vector
 
-DB_URL = "postgresql://jobmatch:jobmatch@localhost:5432/jobmatch"
+# Read from the environment, so the same code works on your laptop and inside Docker
+DB_URL = os.getenv("DATABASE_URL", "postgresql://jobmatch:jobmatch@localhost:5432/jobmatch")
 
 
 def connect() -> psycopg.Connection:

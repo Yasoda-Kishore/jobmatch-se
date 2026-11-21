@@ -4,9 +4,9 @@ from pathlib import Path
 
 import psycopg
 
+from jobmatch.db import DB_URL
 from jobmatch.ingest.clean import clean_text, detect_language
 
-DB_URL = "postgresql://jobmatch:jobmatch@localhost:5432/jobmatch"
 IN_FILE = Path("data/raw/ads.jsonl")
 
 CREATE_TABLE = """

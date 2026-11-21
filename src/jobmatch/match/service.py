@@ -30,9 +30,9 @@ def match_profile(
     matches, quotes_kept, quotes_dropped = [], 0, 0
     for ad in candidates:
         fit, dropped = score_job(profile, ad["title"], texts[ad["id"]])
-        quotes_kept += len(fit.reasons)
+        quotes_kept += len(fit["quotes"])
         quotes_dropped += dropped
-        matches.append({**ad, **fit.model_dump()})
+        matches.append({**ad, **fit})
     matches.sort(key=lambda m: m["score"], reverse=True)
     total = quotes_kept + quotes_dropped
     return {
