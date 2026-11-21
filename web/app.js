@@ -10,6 +10,17 @@ try {
   document.body.classList.add("no-webgl");
 }
 
+// Say honestly where the CV goes: a local model, or a cloud AI provider
+fetch(`${API}/config`)
+  .then((r) => (r.ok ? r.json() : null))
+  .then((config) => {
+    if (config?.llm_location === "cloud") {
+      document.getElementById("privacy-note").textContent =
+        "Live ads from Arbetsförmedlingen. Your CV is sent to a cloud AI model to be read, and is not stored.";
+    }
+  })
+  .catch(() => {});
+
 const escape = (value) =>
   String(value ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
 

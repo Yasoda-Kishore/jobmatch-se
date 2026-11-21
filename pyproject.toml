@@ -6,7 +6,7 @@ build-backend = "setuptools.build_meta"
 name = "jobmatch"
 version = "0.1.0"
 requires-python = ">=3.11"
-dependencies = ["httpx", "pandas", "psycopg[binary]", "pgvector", "sentence-transformers", "fastapi", "uvicorn[standard]", "ollama", "pypdf", "python-multipart", "streamlit"]
+dependencies = ["httpx", "pandas", "psycopg[binary]", "pgvector", "sentence-transformers", "fastapi", "uvicorn[standard]", "ollama", "pypdf", "python-multipart", "streamlit", "openai"]
 [project.optional-dependencies]
 dev = ["pytest", "ruff"]
 

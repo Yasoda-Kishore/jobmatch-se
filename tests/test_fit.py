@@ -61,3 +61,12 @@ def test_unique_ads_removes_duplicate_postings():
         {"id": "3", "title": "ML Engineer", "employer": None},
     ]
     assert [ad["id"] for ad in unique_ads(ads)] == ["1", "3"]
+
+
+def test_broad_skills_are_matched_through_concrete_ones():
+    cv = ["PyTorch", "RAG", "PostgreSQL"]
+    assert has_skill(cv, "Machine Learning")
+    assert has_skill(cv, "LLMs")
+    assert has_skill(cv, "SQL")
+    assert not has_skill(cv, "Kubernetes")
+    assert not has_skill(["JavaScript"], "Java")

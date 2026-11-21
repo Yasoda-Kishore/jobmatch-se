@@ -1,16 +1,36 @@
 """The web API. Start it with: uvicorn jobmatch.api.main:app --reload"""
+import logging
+import time
 from pathlib import Path
 from typing import Literal
 
-from fastapi import FastAPI, HTTPException, Query, UploadFile
+from fastapi import FastAPI, HTTPException, Query, Request, UploadFile
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
+from jobmatch.llm import LLM_MODEL, LLM_PROVIDER
 from jobmatch.match.profile import read_pdf_text
 from jobmatch.match.service import match_cv_text
+from jobmatch.monitoring import finish_request, start_request, summary
 from jobmatch.search.engine import search
 
 app = FastAPI(title="JobMatch SE", description="Search Swedish IT job ads by meaning and keywords")
+logging.basicConfig(level=logging.INFO, format="%(message)s")
+
+API_PATHS = ("/search", "/match", "/health", "/metrics")
+
+
+@app.middleware("http")
+async def measure_requests(request: Request, call_next):
+    """Time every API request, add the time as a header, and log it."""
+    stats = start_request()
+    started = time.perf_counter()
+    response = await call_next(request)
+    duration_ms = (time.perf_counter() - started) * 1000
+    response.headers["X-Response-Time-ms"] = f"{duration_ms:.0f}"
+    if request.url.path in API_PATHS:
+        finish_request(stats, request.method, request.url.path, response.status_code, duration_ms)
+    return response
 
 
 class SearchResult(BaseModel):
@@ -33,6 +53,18 @@ class SearchResponse(BaseModel):
 def health() -> dict:
     """A simple check that the server is running."""
     return {"status": "ok"}
+
+
+@app.get("/config")
+def config() -> dict:
+    """Tells the website whether CVs are read by a local or a cloud LLM, so it can say so honestly."""
+    return {"llm_location": "local" if LLM_PROVIDER == "ollama" else "cloud", "llm_model": LLM_MODEL}
+
+
+@app.get("/metrics")
+def metrics() -> dict:
+    """Speed and LLM usage per endpoint, over the last 500 requests."""
+    return summary()
 
 
 @app.get("/search", response_model=SearchResponse)
@@ -61,7 +93,10 @@ def match_cv(
     text = read_pdf_text(cv.file.read())
     if not text:
         raise HTTPException(status_code=400, detail="No readable text in this PDF")
-    return match_cv_text(text, city=city, language=language, top=top)
+    try:
+        return match_cv_text(text, city=city, language=language, top=top)
+    except Exception as error:  # wrong model name, rate limit, provider down...
+        raise HTTPException(status_code=502, detail=f"The AI model failed: {error}") from error
 
 
 # The website (web/index.html and friends). Mounted last, so the API routes above win.

@@ -27,6 +27,7 @@ READ_AD_PROMPT = """You read job ads and extract their requirements for a matchi
 Rules:
 - Only use what is written in the ad. Never guess.
 - Write skills as short names, like "Python", "PyTorch", "Kubernetes".
+- Only list technical skills. Never list spoken languages, soft skills, degrees or ways of working.
 - A skill is "required" if the ad says must, required, krav, or expects it. "Plus", "bonus" or "meriterande" means nice to have.
 - key_quotes must be copied word for word from the ad. If the ad is in Swedish, quote it in Swedish."""
 
@@ -39,15 +40,40 @@ def skill_tokens(skill: str) -> set[str]:
     return set(re.findall(r"[0-9a-zåäö+#]+", skill.lower()))
 
 
-def has_skill(candidate_skills: list[str], wanted: str) -> bool:
-    """True if one of the candidate's skills contains every word of the wanted skill, or the other way round.
+# A broad skill counts as present if the candidate has one of these concrete skills.
+# Example: an ad asks for "Machine Learning"; the CV says "PyTorch". That is a match.
+IMPLIED_BY = {
+    "machine learning": ["pytorch", "tensorflow", "scikit-learn", "keras", "xgboost"],
+    "deep learning": ["pytorch", "tensorflow", "keras"],
+    "llms": ["rag", "ollama", "llama.cpp", "langchain", "hugging face transformers", "openai"],
+    "large language models": ["rag", "ollama", "llama.cpp", "langchain", "hugging face transformers", "openai"],
+    "generative ai": ["rag", "ollama", "llama.cpp", "langchain", "openai"],
+    "nlp": ["hugging face transformers", "spacy", "nltk", "rag"],
+    "natural language processing": ["hugging face transformers", "spacy", "nltk", "rag"],
+    "computer vision": ["opencv", "yolo"],
+    "sql": ["postgresql", "mysql", "sql server", "sqlite"],
+    "databases": ["postgresql", "mysql", "mongodb", "sql"],
+    "vector databases": ["pgvector", "faiss", "pinecone", "qdrant", "weaviate"],
+    "cloud": ["aws", "gcp", "azure"],
+    "containers": ["docker", "kubernetes"],
+    "ci/cd": ["github actions", "gitlab ci", "jenkins"],
+    "version control": ["git"],
+    "rest apis": ["fastapi", "flask", "django"],
+}
 
-    So 'CI/CD' matches 'GitHub Actions CI/CD', but 'Java' does not match 'JavaScript'.
-    """
-    want = skill_tokens(wanted)
-    if not want:
-        return False
-    return any(want <= skill_tokens(s) or (skill_tokens(s) and skill_tokens(s) <= want) for s in candidate_skills)
+
+def _matches(a: str, b: str) -> bool:
+    """Word-level match: 'CI/CD' matches 'GitHub Actions CI/CD', 'Java' does not match 'JavaScript'."""
+    ta, tb = skill_tokens(a), skill_tokens(b)
+    return bool(ta and tb) and (ta <= tb or tb <= ta)
+
+
+def has_skill(candidate_skills: list[str], wanted: str) -> bool:
+    """True if the candidate has the wanted skill, directly or through a more concrete skill."""
+    if any(_matches(wanted, s) for s in candidate_skills):
+        return True
+    concrete = IMPLIED_BY.get(" ".join(wanted.lower().split()), [])
+    return any(_matches(c, s) for c in concrete for s in candidate_skills)
 
 
 def split_skills(candidate_skills: list[str], wanted: list[str]) -> tuple[list[str], list[str]]:
@@ -101,9 +127,13 @@ def calculate_fit(profile: CandidateProfile, req: AdRequirements) -> dict:
     }
 
 
-def score_job(profile: CandidateProfile, title: str, ad_text: str) -> tuple[dict, int]:
-    """Extract the ad's requirements with the LLM, then score them in Python."""
-    req = chat_json(READ_AD_PROMPT, f"JOB AD: {title}\n{ad_text[:6000]}", AdRequirements)
+def read_requirements(title: str, ad_text: str) -> AdRequirements:
+    """The LLM step: read one ad and extract its requirements."""
+    return chat_json(READ_AD_PROMPT, f"JOB AD: {title}\n{ad_text[:6000]}", AdRequirements)
+
+
+def score_requirements(profile: CandidateProfile, req: AdRequirements, ad_text: str) -> tuple[dict, int]:
+    """The Python step: score the requirements and check the quotes. Returns (fit, quotes dropped)."""
     fit = calculate_fit(profile, req)
     fit["quotes"], dropped = verified_quotes(req.key_quotes, ad_text)
     return fit, dropped
